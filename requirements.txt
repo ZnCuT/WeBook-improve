@@ -1,0 +1,20 @@
+# Flask 核心依赖
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+Flask-Migrate==4.0.5
+Flask-Bcrypt==1.0.1
+Werkzeug==3.0.1
+
+# 数据库驱动
+PyMySQL==1.1.0
+cryptography==41.0.7
+
+# 语义检索依赖
+sentence-transformers==2.2.2
+torch>=2.6.0,<3.0.0
+numpy==1.24.3
+faiss-cpu==1.7.4
+
+# 工具库
+python-dotenv==1.0.0
+Pillow==10.1.0
