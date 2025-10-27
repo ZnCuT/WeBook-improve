@@ -101,7 +101,7 @@
 
         .results a {
             text-decoration: none;
-            color: #3498db;
+            color: #ffffff;
         }
         .results a:hover {
             text-decoration: underline;
@@ -184,8 +184,8 @@
                     <input type="radio" name="search_mode" value="sparql" {% if search_mode == 'sparql' %}checked{% endif %}>
                     SPARQL Knowledge graph <span class="mode-description">(semantic reasoning)</span>
                 </label>
-            </div>                <input type="text" name="query" placeholder="输入书名或描述,智能语义搜索可理解相关含义..." value="{{ query }}" required>
-                <button type="submit">搜索</button>
+            </div>                <input type="text" name="query" placeholder="Enter the book title or description, and the intelligent semantic search can understand the relevant meaning..." value="{{ query }}" required>
+                <button type="submit">Search</button>
             </form>
             
             {% with messages = get_flashed_messages() %}
@@ -212,7 +212,10 @@
                     {% for result in results %}
                         <li>
                             {% if result.image %}
-                                <img src="{{ url_for('static', filename='uploads/' + result.image.split('/')[-1]) }}" alt="{{ result.name }}" class="product-image" onerror="this.src='/static/images/book1.png'">
+                                {# 规范化路径，支持 Windows 反斜杠 与 可能的 static/ 前缀 #}
+                                {% set img_path = (result.image | replace('\\', '/')) %}
+                                {% set static_rel = img_path.replace('static/', '') %}
+                                <img src="{{ url_for('static', filename=static_rel) }}" alt="{{ result.name }}" class="product-image" onerror="this.src='/static/images/book1.png'">
                             {% else %}
                                 <img src="{{ url_for('static', filename='images/book1.png') }}" alt="默认图片" class="product-image">
                             {% endif %}

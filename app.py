@@ -9,6 +9,7 @@ from simple_semantic import get_simple_search
 from knowledge_base import knowledge_base
 from sparql_search import semantic_search_service
 import base64, io
+from uuid import uuid4
 app = Flask(__name__)
 app.config.from_object(Config)
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
@@ -143,14 +144,19 @@ def upload():
         degree_of_wear = request.form.get('degree_of_wear')
         image = request.files['image']
 
+        image_rel = None
         if image and allowed_file(image.filename):
-            filename = secure_filename(image.filename)
-            image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            image.save(image_path)
-        else:
-            image_path = None
+            # 生成唯一文件名，避免覆盖
+            original = secure_filename(image.filename)
+            unique_name = f"{uuid4().hex}_{original}"
+            save_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_name)
+            # 确保目录存在
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
+            image.save(save_path)
+            # 在数据库中仅存相对static的路径，使用正斜杠，便于通过url_for('static', filename=...)
+            image_rel = f"uploads/{unique_name}"
 
-        new_product = Product(name=name, price=price, description=description, degree_of_wear=degree_of_wear, image=image_path)
+        new_product = Product(name=name, price=price, description=description, degree_of_wear=degree_of_wear, image=image_rel or '')
         db.session.add(new_product)
         db.session.commit()
         
@@ -205,13 +211,19 @@ def book_detail(id):
 
 @app.route('/image/<int:product_id>')
 def get_image(product_id):
-
+    # 兼容历史：若数据库保存了相对路径（推荐），则转为通过static服务；
+    # 若未来保存为base64，可在此分支处理，但当前实现仅支持路径方式。
     product = Product.query.get(product_id)
-    if product.image:
-        image_data = base64.b64decode(product.image)
-        return send_file(io.BytesIO(image_data), mimetype='image/jpeg')
-    else:
+    if not product or not product.image:
         return "No image available", 404
+
+    rel_path = product.image.replace('\\', '/')
+    # 移除可能存在的前缀"static/"
+    if rel_path.startswith('static/'):
+        rel_path = rel_path[len('static/'):]
+
+    # 通过静态目录发送文件
+    return send_from_directory('static', rel_path)
   
 @app.route('/check_data')
 def check_data():
@@ -283,7 +295,7 @@ def api_semantic_search():
         top_k = data.get('top_k', 10)
         
         if not query:
-            return jsonify({"error": "查询不能为空"}), 400
+            return jsonify({"error": "The query cannot be empty"}), 400
         
         # 执行简单语义搜索
         all_products = Product.query.all()

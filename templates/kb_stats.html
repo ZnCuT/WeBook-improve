@@ -148,74 +148,74 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-number">{{ stats.books }}</div>
-                    <div class="stat-label">📚 书籍数量</div>
+                    <div class="stat-label">📚 books number</div>
                 </div>
                 
                 <div class="stat-card">
                     <div class="stat-number">{{ stats.categories }}</div>
-                    <div class="stat-label">🏷️ 分类数量</div>
+                    <div class="stat-label">🏷️ categories number</div>
                 </div>
                 
                 <div class="stat-card">
                     <div class="stat-number">{{ stats.authors }}</div>
-                    <div class="stat-label">👨‍💼 作者数量</div>
+                    <div class="stat-label">👨‍💼 authors number</div>
                 </div>
                 
                 <div class="stat-card">
                     <div class="stat-number">{{ stats.triples }}</div>
-                    <div class="stat-label">� 三元组数量</div>
+                    <div class="stat-label">🔗 triples number</div>
                 </div>
             </div>
             
             <!-- 语义功能说明 -->
             <div class="kb-explanation">
-                <h3>🎯 语义知识库功能说明</h3>
-                <p>WeBook语义知识库基于RDF三元组和SPARQL查询语言，实现了智能的书籍搜索和推荐功能。</p>
+                <h3>🎯 Semantic Knowledge Base Function Description</h3>
+                <p>WeBook Semantic Knowledge Base is based on RDF triples and SPARQL query language, realizing intelligent book search and recommendation functions.</p>
                 
                 <div class="semantic-features">
                     <div class="feature-item">
                         <div class="feature-icon">🔍</div>
-                        <h4>语义搜索</h4>
-                        <p>理解查询意图，支持同义词匹配</p>
+                        <h4>Semantic Search</h4>
+                        <p>Understand query intent and support synonym matching</p>
                     </div>
                     
                     <div class="feature-item">
                         <div class="feature-icon">🏗️</div>
-                        <h4>知识推理</h4>
-                        <p>基于分类层次进行智能推理</p>
+                        <h4>Knowledge Reasoning</h4>
+                        <p>Intelligent reasoning based on classification hierarchy</p>
                     </div>
                     
                     <div class="feature-item">
                         <div class="feature-icon">🤖</div>
-                        <h4>自动分类</h4>
-                        <p>智能分析书籍内容并自动分类</p>
+                        <h4>Automatic Classification</h4>
+                        <p>Intelligent analysis of book content and automatic classification</p>
                     </div>
                     
                     <div class="feature-item">
                         <div class="feature-icon">🔗</div>
-                        <h4>关联推荐</h4>
-                        <p>基于语义关系推荐相关书籍</p>
+                        <h4>Related Recommendation</h4>
+                        <p>Recommend related books based on semantic relationships</p>
                     </div>
                 </div>
             </div>
             
             <!-- 本体结构信息 -->
             <div class="ontology-info">
-                <h3>📋 本体结构</h3>
-                <p><strong>实体类型:</strong> 图书(Book)、分类(Category)、作者(Author)、出版社(Publisher)</p>
-                <p><strong>主要关系:</strong> belongsToCategory, writtenBy, publishedBy, relatedTo</p>
-                <p><strong>属性:</strong> 标题、描述、价格、关键词、编程语言、难度级别等</p>
+                <h3>📋 Ontology Structure</h3>
+                <p><strong>Entity Types:</strong> Book, Category, Author, Publisher</p>
+                <p><strong>Main Relationships:</strong> belongsToCategory, writtenBy, publishedBy, relatedTo</p>
+                <p><strong>Attributes:</strong> Title, Description, Price, Keywords, Programming Language, Difficulty Level, etc.</p>
             </div>
             
             <!-- 分类详情表格 -->
             {% if stats.category_details %}
-            <h3>📂 分类统计详情</h3>
+            <h3>📂 Category Statistics Details</h3>
             <table class="categories-table">
                 <thead>
                     <tr>
-                        <th>分类名称</th>
-                        <th>显示标签</th>
-                        <th>书籍数量</th>
+                        <th>Category Name</th>
+                        <th>Display Label</th>
+                        <th>Number of Books</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -233,25 +233,25 @@
             <!-- 操作按钮 -->
             <div class="actions-section">
                 <a href="{{ url_for('sync_kb') }}" class="btn btn-primary">
-                    🔄 同步知识库
+                    🔄 Sync Knowledge Base
                 </a>
                 <a href="{{ url_for('search') }}" class="btn btn-secondary">
-                    🔍 返回搜索
+                    🔍 Return to Search
                 </a>
                 <a href="{{ url_for('homepage') }}" class="btn btn-secondary">
-                    🏠 返回首页
+                    🏠 Return to Homepage
                 </a>
             </div>
             
             <!-- 技术说明 -->
             <div style="margin-top: 40px; padding: 20px; background: #f1f3f4; border-radius: 8px; font-size: 0.9em; color: #666;">
-                <h4>🔧 技术实现</h4>
+                <h4>🔧 Technical Implementation</h4>
                 <ul style="margin: 10px 0; padding-left: 20px;">
-                    <li><strong>RDF三元组存储:</strong> 使用RDFLib库管理语义数据</li>
-                    <li><strong>SPARQL查询引擎:</strong> 支持复杂的语义查询和推理</li>
-                    <li><strong>本体建模:</strong> 定义了完整的图书领域本体</li>
-                    <li><strong>智能分类:</strong> 基于关键词和内容自动分类</li>
-                    <li><strong>同义词扩展:</strong> 支持中英文同义词语义匹配</li>
+                    <li><strong>RDF Triple Store:</strong> Using RDFLib to manage semantic data</li>
+                    <li><strong>SPARQL Query Engine:</strong> Supports complex semantic queries and reasoning</li>
+                    <li><strong>Ontology Modeling:</strong> Defines a complete ontology for the book domain</li>
+                    <li><strong>Intelligent Classification:</strong> Automatically classifies based on keywords and content</li>
+                    <li><strong>Synonym Expansion:</strong> Supports semantic matching of synonyms in Chinese and English</li>
                 </ul>
             </div>
         </div>

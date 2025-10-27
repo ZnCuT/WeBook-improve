@@ -17,7 +17,13 @@
                 <ul>
                     {% for product in products %}
                     <li class="box-item" data-id="{{product.id}}">
-                        <img src="{{ product.image }}" alt="Product Image">
+                        {% if product.image %}
+                        {% set img_path = (product.image | replace('\\', '/')) %}
+                        {% set static_rel = img_path.replace('static/', '') %}
+                        <img src="{{ url_for('static', filename=static_rel) }}" alt="Product Image">
+                        {% else %}
+                        <img src="{{ url_for('static', filename='images/book1.png') }}" alt="Product Image">
+                        {% endif %}
                         <p>description:{{ product.description }}</p><br><br>
                         <!-- <p>Price: ${{ product.price }}</p>
                         <p>degree_of_wear:{{product.degree_of_wear}}</p> -->

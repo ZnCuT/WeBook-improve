@@ -20,7 +20,13 @@
                 <ul>
                     {% for product in products %}
                     <li class="box-item" data-id="{{product.id}}">
-                        <img src="{{ product.image }}" alt="Product Image">
+                        {% if product.image %}
+                        {% set img_path = (product.image | replace('\\', '/')) %}
+                        {% set static_rel = img_path.replace('static/', '') %}
+                        <img src="{{ url_for('static', filename=static_rel) }}" alt="Product Image">
+                        {% else %}
+                        <img src="{{ url_for('static', filename='images/book1.png') }}" alt="Product Image">
+                        {% endif %}
                     </li>
             <h2 id="book-title">书名: {{product.name}}</h2>
             {% endfor %}
@@ -30,11 +36,11 @@
         <div class="right">
             <div class="book-info">
                 {% for product in products %}
-                    <h3>卖家信息</h3>
-                    <p><strong>卖家名称:</strong> <span id="seller-name">{{ product.id }}</span></p>
-                    <p><strong>定价:</strong> <span id="price">{{ product.price }}</span></p>
-                    <p><strong>描述:</strong> <span id="description">{{ product.description }}</span></p>
-                    <p><strong>书籍状态:</strong> <span id="book-condition">{{ product.degree_of_wear }}</span></p>
+                    <h3>Seller information</h3>
+                    <p><strong>Seller Name:</strong> <span id="seller-name">{{ product.id }}</span></p>
+                    <p><strong>Price:</strong> <span id="price">{{ product.price }}</span></p>
+                    <p><strong>Description:</strong> <span id="description">{{ product.description }}</span></p>
+                    <p><strong>Book Condition:</strong> <span id="book-condition">{{ product.degree_of_wear }}</span></p>
                 {% endfor %}
             </div>
         </div>

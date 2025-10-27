@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>上传图书 - WeBook</title>
+    <title>upload books - WeBook</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/upload_book.css') }}">
 </head>
 <body>
@@ -23,28 +23,34 @@
                 <div class="right-sidebar">Right Sidebar Content<br><br>
                     <label for="image">Product Image:</label><br><br>
                     <input type="file" id="image" name="image">
+                    <div id="preview" style="margin-top:10px;"></div>
                 </div>
 
                 <button type="submit">Upload</button>
             </form>
         </div>
     </div>
-
-        </form>
+        
         <script>
-            document.getElementById('image').addEventListener('change', function(event) {
-                const file = event.target.files[0];
-                if (file && file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const preview = document.getElementById('preview');
-                        preview.innerHTML = `<img src="${e.target.result}" alt="Book Image Preview" style="max-width: 100%; height: auto;">`;
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    alert('Please select a valid image file.');
-                }
-            });
+            (function() {
+                var input = document.getElementById('image');
+                if (!input) return;
+                input.addEventListener('change', function(event) {
+                    const file = event.target.files && event.target.files[0];
+                    if (file && file.type && file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const preview = document.getElementById('preview');
+                            if (preview) {
+                                preview.innerHTML = '<img src="' + e.target.result + '" alt="Book Image Preview" style="max-width: 100%; height: auto;" />';
+                            }
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        alert('Please select a valid image file.');
+                    }
+                });
+            })();
         </script>
 </body>
 </html>
