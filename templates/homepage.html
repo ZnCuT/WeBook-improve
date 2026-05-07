@@ -1,75 +1,317 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>Homepage</title>
+    <title>My Homepage - WeBook</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css') }}">
 </head>
 <body>
-    <div class="left-label">
-        <img src="{{ url_for('static', filename='images/white-MElogo.png') }}" alt="MELogo" class="logo">
-        <h1>My</h1>
-        <h2>Homepage</h2>
-    </div>
-    <div class="container">
-        <div class="left-column">
-            <div class="box-item">
-                <ul>
-                    {% for product in products %}
-                    <li class="box-item" data-id="{{product.id}}">
+    <!-- 头部 -->
+    <header>
+        <div class="header-content">
+            <div class="logo-section">
+                <img src="{{ url_for('static', filename='images/white-MElogo.png') }}" alt="Logo" class="logo">
+                <div class="title-group">
+                    <h1>My</h1>
+                    <h2>Homepage</h2>
+                </div>
+            </div>
+            <button class="back-btn" onclick="goBack()">← Back</button>
+        </div>
+    </header>
+
+    <!-- 主内容 -->
+    <div class="main-container">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="flash-messages">
+              {% for message in messages %}
+                <div class="flash-message success">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+        
+        <!-- 选项卡切换 -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('uploaded')">📚 My Uploaded Books</button>
+            <button class="tab-btn" onclick="switchTab('purchased')">🛒 My Purchased Books</button>
+            <button class="tab-btn" onclick="switchTab('sold')">✅ Sold Books</button>
+        </div>
+
+        <!-- 上架书籍 -->
+        <div id="uploaded-tab" class="tab-content active">
+            <div class="section-header">
+                <h3>Books I'm Selling</h3>
+                <span class="count">{{ uploaded_products|length }} items</span>
+            </div>
+            
+            {% if uploaded_products %}
+            <div class="products-grid">
+                {% for product in uploaded_products %}
+                <div class="product-card">
+                    <div class="product-image">
                         {% if product.image %}
                         {% set img_path = (product.image | replace('\\', '/')) %}
                         {% set static_rel = img_path.replace('static/', '') %}
-                        <img src="{{ url_for('static', filename=static_rel) }}" alt="Product Image">
+                        <img src="{{ url_for('static', filename=static_rel) }}" alt="Book Cover">
                         {% else %}
-                        <img src="{{ url_for('static', filename='images/book1.png') }}" alt="Product Image">
+                        <img src="{{ url_for('static', filename='images/book1.png') }}" alt="Book Cover">
                         {% endif %}
-                        <p>description:{{ product.description }}</p><br><br>
-                        <!-- <p>Price: ${{ product.price }}</p>
-                        <p>degree_of_wear:{{product.degree_of_wear}}</p> -->
-                        <button class="remove-btn" onclick="deleteItem('{{product.id}}')">Remove</button>
-                    </li>
-                    {% endfor %}
-                </ul>
+                    </div>
+                    <div class="product-info">
+                        <h4>{{ product.name }}</h4>
+                        <p class="price">¥{{ "%.2f"|format(product.price or 0.0) }}</p>
+                        <p class="desc">{{ product.description or '' }}</p>
+                        <div class="actions">
+                            <button class="edit-btn" onclick="editProduct({{ product.id }})">✏️ Edit</button>
+                            <button class="delete-btn" onclick="deleteProduct({{ product.id }})">🗑️ Remove</button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <p>No books uploaded yet</p>
+                <a href="{{ url_for('upload') }}" class="upload-link">Upload your first book</a>
             </div>
+            {% endif %}
         </div>
 
-        <!-- 右框：导航栏 -->
-        <div class="right-column">
-            <nav>
-                <ul>
-                    <li>
-                        <h4>Help Center</h4>
-                        <h5>User Guide</h5>
-                        <h5>Contact Us</h5>
-                    </li>
-                    <li>
-                        <h4>Information Center</h4>
-                        <h5>Network Security Note</h5>
-                        <h5>Report Feedback</h5>
-                    </li>
-                    <li>
-                        <h4>About Us</h4>
-                        <h5>Homepage</h5>
-                        <h5>User Agreement</h5>
-                    </li>
-                </ul>
-            </nav>
+        <!-- 已购买书籍 -->
+        <div id="purchased-tab" class="tab-content">
+            <div class="section-header">
+                <h3>Books I've Purchased</h3>
+                <span class="count">{{ orders|length }} items</span>
+            </div>
+            
+            {% if orders %}
+            <div class="orders-list">
+                {% for order in orders %}
+                <div class="order-card">
+                    <div class="order-image">
+                        {% if order.product_image %}
+                        {% set img_path = (order.product_image | replace('\\', '/')) %}
+                        {% set static_rel = img_path.replace('static/', '') %}
+                        <img src="{{ url_for('static', filename=static_rel) }}" alt="Book Cover">
+                        {% else %}
+                        <img src="{{ url_for('static', filename='images/book1.png') }}" alt="Book Cover">
+                        {% endif %}
+                    </div>
+                    <div class="order-info">
+                        <h4>{{ order.product_name }}</h4>
+                        <p class="order-price">¥{{ "%.2f"|format(order.product_price) }}</p>
+                        <div class="order-status">
+                            <span class="status-badge {{ order.status }}">{{ order.status|upper }}</span>
+                        </div>
+                        {% if order.seller_contact %}
+                        <div class="contact-section">
+                            <h5>Seller Contact:</h5>
+                            <p class="contact-info">{{ order.seller_contact }}</p>
+                        </div>
+                        {% endif %}
+                        <button class="contact-btn" onclick="contactSeller({{ order.id }})">📞 Contact Seller</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">🛒</div>
+                <p>No purchases yet</p>
+                <a href="{{ url_for('search') }}" class="upload-link">Start shopping</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- 已售出书籍 -->
+        <div id="sold-tab" class="tab-content">
+            <div class="section-header">
+                <h3>Books I've Sold</h3>
+                <span class="count">{{ sold_products|length }} items</span>
+            </div>
+            
+            {% if sold_products %}
+            <div class="products-grid">
+                {% for product in sold_products %}
+                <div class="product-card sold">
+                    <div class="product-image">
+                        {% if product.image %}
+                        {% set img_path = (product.image | replace('\\', '/')) %}
+                        {% set static_rel = img_path.replace('static/', '') %}
+                        <img src="{{ url_for('static', filename=static_rel) }}" alt="Book Cover">
+                        {% else %}
+                        <img src="{{ url_for('static', filename='images/book1.png') }}" alt="Book Cover">
+                        {% endif %}
+                        <span class="sold-badge">SOLD</span>
+                    </div>
+                    <div class="product-info">
+                        <h4>{{ product.name }}</h4>
+                        <p class="price">¥{{ "%.2f"|format(product.price or 0.0) }}</p>
+                        <p class="desc">{{ product.description or '' }}</p>
+                        <div class="buyer-info">
+                            <span class="buyer-label">Sold to:</span>
+                            <span class="buyer-id">User ID: {{ product.buyer_id or 'Unknown' }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">💰</div>
+                <p>No books sold yet</p>
+                <a href="{{ url_for('upload') }}" class="upload-link">Upload books to sell</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 编辑弹窗 -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h3>Edit Book Details</h3>
+            <form id="edit-form">
+                <input type="hidden" id="edit-id">
+                <div class="form-row">
+                    <label>Book Name</label>
+                    <input type="text" id="edit-name" required>
+                </div>
+                <div class="form-row">
+                    <label>Price</label>
+                    <input type="number" id="edit-price" step="0.01" required>
+                </div>
+                <div class="form-row">
+                    <label>Description</label>
+                    <input type="text" id="edit-description" required>
+                </div>
+                <div class="form-row">
+                    <label>Degree of Wear</label>
+                    <input type="text" id="edit-wear" required>
+                </div>
+                <div class="form-row">
+                    <label>Seller Contact</label>
+                    <input type="text" id="edit-contact">
+                </div>
+                <button type="submit" class="save-btn">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 联系卖家弹窗 -->
+    <div id="contact-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeContactModal()">&times;</span>
+            <h3>Contact Seller</h3>
+            <div id="contact-info-display"></div>
+            <button class="close-btn" onclick="closeContactModal()">Close</button>
         </div>
     </div>
 
     <script>
-        function deleteItem(itemId) {
-            fetch(`/products/${itemId}`, { method: 'DELETE' })
-                .then((response) => response.json())
-                .then((data) => {
-                    console.log(data.message);
-                    document.querySelector(`[data-id="${itemId}"]`).remove();
+        function goBack() {
+            window.history.back();
+        }
+
+        function switchTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-btn');
+            const contents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+            
+            document.querySelector(`.tab-btn[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+
+        function editProduct(productId) {
+            fetch(`/products/${productId}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('edit-id').value = data.id;
+                    document.getElementById('edit-name').value = data.name;
+                    document.getElementById('edit-price').value = data.price;
+                    document.getElementById('edit-description').value = data.description;
+                    document.getElementById('edit-wear').value = data.degree_of_wear;
+                    document.getElementById('edit-contact').value = data.seller_contact || '';
+                    document.getElementById('edit-modal').style.display = 'block';
                 })
-                .catch((error) => {
-                    console.error('Error:', error);
-                });
+                .catch(error => console.error('Error:', error));
+        }
+
+        function closeModal() {
+            document.getElementById('edit-modal').style.display = 'none';
+        }
+
+        function closeContactModal() {
+            document.getElementById('contact-modal').style.display = 'none';
+        }
+
+        document.getElementById('edit-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = document.getElementById('edit-id').value;
+            const data = {
+                name: document.getElementById('edit-name').value,
+                price: parseFloat(document.getElementById('edit-price').value),
+                description: document.getElementById('edit-description').value,
+                degree_of_wear: document.getElementById('edit-wear').value,
+                seller_contact: document.getElementById('edit-contact').value
+            };
+            
+            fetch(`/products/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                closeModal();
+                location.reload();
+            })
+            .catch(error => console.error('Error:', error));
+        });
+
+        function deleteProduct(productId) {
+            if (confirm('Are you sure you want to delete this book?')) {
+                fetch(`/products/${productId}`, { method: 'DELETE' })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.message);
+                        location.reload();
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+        }
+
+        function contactSeller(orderId) {
+            fetch(`/order/${orderId}`)
+                .then(response => response.json())
+                .then(data => {
+                    let html = `<p><strong>Book:</strong> ${data.product_name}</p>`;
+                    html += `<p><strong>Price:</strong> ¥${data.product_price.toFixed(2)}</p>`;
+                    if (data.seller_contact) {
+                        html += `<p><strong>Seller Contact:</strong> ${data.seller_contact}</p>`;
+                        html += `<p class="contact-hint">You can contact the seller directly using the information above.</p>`;
+                    } else {
+                        html += `<p class="contact-hint">No contact information provided by seller.</p>`;
+                    }
+                    document.getElementById('contact-info-display').innerHTML = html;
+                    document.getElementById('contact-modal').style.display = 'block';
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            });
         }
     </script>
 </body>

@@ -4,27 +4,62 @@
     <meta charset="UTF-8">
     <title>Login</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+    <script>
+        // 自动隐藏消息提示框
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                var flashMessages = document.querySelectorAll('.flash-message');
+                flashMessages.forEach(function(msg) {
+                    msg.style.opacity = '0';
+                    msg.style.transform = 'translateY(-10px)';
+                    msg.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                    setTimeout(function() {
+                        msg.remove();
+                    }, 300);
+                });
+            }, 3000); // 3秒后自动消失
+        });
+    </script>
 </head>
 <body>
     <nav>
-    </div>
     <a href="{{ url_for('homepage') }}">HOME PAGE</a>
     </nav>
     <div class="login-container">
-        <img src="{{ url_for('static', filename='images/logo.png') }}"> 
+        <div class="logo">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
+        </div>
         <h2>Login</h2>
-        <form method="POST" action="{{ url_for('login') }}">
-            <label for="username">Username:</label>
-            <input type="email" id="email" name="email" required><br><br>
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-            <button type="submit">Login</button>
+        
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for message in messages %}
+                        <div class="flash-message error">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <form method="POST" action="{{ url_for('login') }}" class="login-form">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="Please enter your email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Please enter your password" required>
+            </div>
+            <button type="submit" class="login-btn">Login</button>
         </form>
-        <a href="{{ url_for('register') }}">Register here</a></a>
         {% if error %}
             <p class="error-message">{{ error }}</p>
         {% endif %}
-        <a href="forgot_password.html">FORGET PASSWORD?</a>
+        
+        <div class="links">
+            <a href="{{ url_for('register') }}">Register here</a>
+            <a href="forgot_password.html">FORGET PASSWORD?</a>
+        </div>
     </div>
 </body>
 </html>

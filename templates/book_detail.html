@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ product.name }} - WeBook</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/book_detail.css') }}">
+</head>
+<body>
+    <!-- 头部 -->
+    <header>
+        <div class="header-content">
+            <div class="logo-section">
+                <img src="{{ url_for('static', filename='images/white-MElogo.png') }}" alt="Logo" class="logo">
+                <div class="title-group">
+                    <h1>Book</h1>
+                    <h2>Details</h2>
+                </div>
+            </div>
+            <button class="back-btn" onclick="goBack()">← Back</button>
+        </div>
+    </header>
+
+    <!-- 主内容 -->
+    <div class="main-container">
+        <div class="book-card">
+            <div class="book-image">
+                {% if product.image %}
+                    {% set img_path = (product.image | replace('\\', '/')) %}
+                    {% set static_rel = img_path.replace('static/', '') %}
+                    <img src="{{ url_for('static', filename=static_rel) }}" alt="{{ product.name }}" onerror="this.src='/static/images/book1.png'">
+                {% else %}
+                    <img src="{{ url_for('static', filename='images/book1.png') }}" alt="{{ product.name }}">
+                {% endif %}
+            </div>
+            
+            <div class="book-info">
+                <h2>{{ product.name }}</h2>
+                {% if product.is_sold %}
+                <span class="sold-badge">SOLD</span>
+                {% endif %}
+                <p class="price">¥{{ "%.2f"|format(product.price) }}</p>
+                <div class="info-row">
+                    <span class="label">Description:</span>
+                    <span class="value">{{ product.description }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Degree of Wear:</span>
+                    <span class="value">{{ product.degree_of_wear }}</span>
+                </div>
+                {% if product.seller_contact %}
+                <div class="info-row contact-info">
+                    <span class="label">Seller Contact:</span>
+                    <span class="value highlight">{{ product.seller_contact }}</span>
+                </div>
+                {% endif %}
+                {% if product.is_sold %}
+                <div class="info-row sold-info">
+                    <span class="label">Sold To:</span>
+                    <span class="value highlight">User ID: {{ product.buyer_id }}</span>
+                </div>
+                {% endif %}
+                
+                <div class="action-buttons">
+                    {% if product.is_sold %}
+                    <button class="buy-btn disabled" disabled>✅ Already Sold</button>
+                    {% else %}
+                    <button class="buy-btn" onclick="openPaymentModal()">💳 Purchase</button>
+                    {% endif %}
+                    <button class="contact-btn" onclick="openContactModal()">📞 Contact Seller</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 支付弹窗 -->
+    <div id="payment-modal" class="modal">
+        <div class="modal-content payment-content">
+            <span class="close-modal" onclick="closePaymentModal()">&times;</span>
+            <div class="payment-header">
+                <div class="payment-icon">💳</div>
+                <h3>Virtual Payment</h3>
+            </div>
+            
+            <div class="order-summary">
+                <h4>Order Summary</h4>
+                <div class="summary-row">
+                    <span>Book:</span>
+                    <span>{{ product.name }}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Price:</span>
+                    <span class="price">¥{{ "%.2f"|format(product.price) }}</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total:</span>
+                    <span class="total-price">¥{{ "%.2f"|format(product.price) }}</span>
+                </div>
+            </div>
+
+            <form id="payment-form">
+                <div class="form-group">
+                    <label>Payment Method</label>
+                    <div class="payment-methods">
+                        <label class="method-option">
+                            <input type="radio" name="payment_method" value="alipay" checked>
+                            <span>Alipay</span>
+                        </label>
+                        <label class="method-option">
+                            <input type="radio" name="payment_method" value="wechat">
+                            <span>WeChat Pay</span>
+                        </label>
+                        <label class="method-option">
+                            <input type="radio" name="payment_method" value="card">
+                            <span>Credit Card</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="card-fields" style="display: none;">
+                    <label>Card Number</label>
+                    <input type="text" id="card-number" placeholder="1234 5678 9012 3456">
+                </div>
+
+                <div class="form-group">
+                    <label>Payment Password</label>
+                    <input type="password" id="payment-password" placeholder="Enter 6-digit password" maxlength="6">
+                </div>
+
+                <button type="submit" class="pay-btn">Confirm Payment</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 联系卖家弹窗 -->
+    <div id="contact-modal" class="modal">
+        <div class="modal-content contact-content">
+            <span class="close-modal" onclick="closeContactModal()">&times;</span>
+            <div class="contact-header">
+                <div class="contact-icon">📞</div>
+                <h3>Contact Seller</h3>
+            </div>
+            
+            <div class="contact-details">
+                <div class="detail-item">
+                    <span class="detail-label">Book:</span>
+                    <span class="detail-value">{{ product.name }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Price:</span>
+                    <span class="detail-value">¥{{ "%.2f"|format(product.price) }}</span>
+                </div>
+                {% if product.seller_contact %}
+                <div class="detail-item highlight">
+                    <span class="detail-label">Seller Contact:</span>
+                    <span class="detail-value">{{ product.seller_contact }}</span>
+                </div>
+                {% else %}
+                <div class="detail-item">
+                    <span class="detail-label">Seller Contact:</span>
+                    <span class="detail-value empty">Not provided</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="message-section">
+                <h4>Send Message</h4>
+                <textarea id="message-input" placeholder="Enter your message to the seller..."></textarea>
+                <button class="send-btn" onclick="sendMessage()">Send Message</button>
+            </div>
+
+            <button class="close-btn" onclick="closeContactModal()">Close</button>
+        </div>
+    </div>
+
+    <!-- 支付成功弹窗 -->
+    <div id="success-modal" class="modal">
+        <div class="modal-content success-content">
+            <div class="success-icon">🎉</div>
+            <h3>Payment Successful!</h3>
+            <p>Your order has been placed successfully.</p>
+            <p class="order-info">Order ID: <span>WB{{ product.id }}{{ current_time }}</span></p>
+            <button class="success-btn" onclick="goToHomepage()">Go to Homepage</button>
+        </div>
+    </div>
+
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+
+        function goToHomepage() {
+            window.location.href = "{{ url_for('homepage') }}";
+        }
+
+        function openPaymentModal() {
+            document.getElementById('payment-modal').style.display = 'block';
+        }
+
+        function closePaymentModal() {
+            document.getElementById('payment-modal').style.display = 'none';
+        }
+
+        function openContactModal() {
+            document.getElementById('contact-modal').style.display = 'block';
+        }
+
+        function closeContactModal() {
+            document.getElementById('contact-modal').style.display = 'none';
+        }
+
+        // 支付方式切换
+        const paymentMethods = document.querySelectorAll('input[name="payment_method"]');
+        paymentMethods.forEach(method => {
+            method.addEventListener('change', function() {
+                document.getElementById('card-fields').style.display = this.value === 'card' ? 'block' : 'none';
+            });
+        });
+
+        // 支付表单提交
+        document.getElementById('payment-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const password = document.getElementById('payment-password').value;
+            if (password.length !== 6) {
+                alert('Please enter a 6-digit payment password');
+                return;
+            }
+
+            // 模拟支付处理
+            closePaymentModal();
+            
+            // 创建订单
+            fetch('/create_order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    product_id: {{ product.id }},
+                    product_name: '{{ product.name }}',
+                    product_price: {{ product.price }},
+                    product_image: '{{ product.image or "" }}',
+                    seller_contact: '{{ product.seller_contact or "" }}'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('success-modal').style.display = 'block';
+                } else {
+                    alert('Payment failed, please try again');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Payment failed, please try again');
+            });
+        });
+
+        function sendMessage() {
+            const message = document.getElementById('message-input').value;
+            if (!message.trim()) {
+                alert('Please enter a message');
+                return;
+            }
+            alert('Message sent successfully!\n\nYour message:\n' + message);
+            document.getElementById('message-input').value = '';
+            closeContactModal();
+        }
+
+        // 点击弹窗外部关闭
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

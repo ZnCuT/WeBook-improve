@@ -6,10 +6,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
     <title>user registration - WeBook</title>
+    <script>
+        // 自动隐藏消息提示框
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                var flashMessages = document.querySelectorAll('.flash-message');
+                flashMessages.forEach(function(msg) {
+                    msg.style.opacity = '0';
+                    msg.style.transform = 'translateY(-10px)';
+                    msg.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                    setTimeout(function() {
+                        msg.remove();
+                    }, 300);
+                });
+            }, 3000); // 3秒后自动消失
+        });
+    </script>
 </head>
 
 <body>
-    <div class="login-container">
+    <div class="register-container">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
+        </div>
         <h2>User Registration</h2>
         
         {% with messages = get_flashed_messages() %}

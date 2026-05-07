@@ -8,30 +8,68 @@
 </head>
 <body>
     <header>
-        <h1>Welcome to My Website</h1>
+        <div class="header-content">
+            <h1>Upload Book</h1>
+            <div class="header-buttons">
+                <button class="back-btn" onclick="goBack()">← Back</button>
+                <a href="{{ url_for('homepage') }}" class="homepage-btn">🏠 Homepage</a>
+            </div>
+        </div>
     </header>
 
     <div class="container">
-        <div class="left-sidebar">Left Sidebar Content
-            <p>Upload details of the book</p>
-            <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
-                <input type="text" name="name" placeholder="Product Name">
-                <input type="text" name="price" placeholder="Price">
-                <input type="text" name="description" placeholder="description">
-                <input type="text" name="degree_of_wear" placeholder="Degree of Wear">
-
-                <div class="right-sidebar">Right Sidebar Content<br><br>
-                    <label for="image">Product Image:</label><br><br>
-                    <input type="file" id="image" name="image">
-                    <div id="preview" style="margin-top:10px;"></div>
-                </div>
-
-                <button type="submit">Upload</button>
-            </form>
+        <div class="upload-card">
+            <div class="card-header">
+                <h2>Upload Book Details</h2>
+                <p>Fill in the book information and upload a cover image</p>
+            </div>
+            
+            <div class="card-body">
+                <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data" class="upload-form">
+                    <div class="form-group">
+                        <label for="name">Book Name</label>
+                        <input type="text" id="name" name="name" placeholder="Enter book name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="price">Price</label>
+                        <input type="number" id="price" name="price" placeholder="Enter price" step="0.01" required>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="description">Description</label>
+                        <input type="text" id="description" name="description" placeholder="Enter book description">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="degree_of_wear">Degree of Wear</label>
+                        <input type="text" id="degree_of_wear" name="degree_of_wear" placeholder="e.g., New, Like New, Good">
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="seller_contact">Seller Contact</label>
+                        <input type="text" id="seller_contact" name="seller_contact" placeholder="e.g., phone number or WeChat">
+                    </div>
+                    
+                    <div class="image-upload" onclick="document.getElementById('image').click();">
+                        <input type="file" id="image" name="image" accept="image/*">
+                        <div class="upload-icon">📷</div>
+                        <div class="upload-text">Click to upload book cover</div>
+                        <div class="upload-hint">Supported formats: JPG, PNG, GIF</div>
+                        <div id="preview"></div>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">Upload Book</button>
+                </form>
+            </div>
         </div>
     </div>
         
         <script>
+            function goBack() {
+                window.history.back();
+            }
+
             (function() {
                 var input = document.getElementById('image');
                 if (!input) return;

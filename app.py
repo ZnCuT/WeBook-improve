@@ -21,9 +21,7 @@ migrate = Migrate(app, db)
 # 初始化简单语义搜索服务
 simple_search = get_simple_search()
 
-# 在应用上下文中创建数据库表
-with app.app_context():
-    db.create_all()
+# 将数据库表创建放在模型定义之后
 
 def sync_database_to_knowledge_base():
     """同步数据库数据到语义知识库"""
@@ -39,11 +37,11 @@ def sync_database_to_knowledge_base():
             }
             knowledge_base.add_book_to_kb(book_data)
         
-        print(f"✅ 已同步 {len(products)} 本书籍到语义知识库")
+        print(f"[OK] 已同步 {len(products)} 本书籍到语义知识库")
         return True
         
     except Exception as e:
-        print(f"❌ 同步数据到知识库时出错: {e}")
+        print(f"[ERROR] 同步数据到知识库时出错: {e}")
         return False
 
 def convert_sparql_results_to_products(sparql_results):
@@ -70,12 +68,17 @@ class Product(db.Model):
     degree_of_wear = db.Column(db.String(80), nullable=False)
     image = db.Column(db.String(200), nullable=False)  # 存储文件路径
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    seller_contact = db.Column(db.String(200))  # 卖家联系方式
+    is_sold = db.Column(db.Boolean, default=False)  # 是否已售出
+    buyer_id = db.Column(db.Integer)  # 购买者ID
+    user_id = db.Column(db.Integer)  # 上传者ID
 
 class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(100), nullable=False)  # 去掉unique约束
+    phone = db.Column(db.String(20))  # 用户联系电话
 
     def set_password(self, password):
         self.password = bcrypt.generate_password_hash(password).decode('utf-8')
@@ -85,6 +88,22 @@ class User(db.Model):
 
     def __repr__(self):
         return f'<User {self.email}>'
+
+class Order(db.Model):
+    __tablename__ = 'orders'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, nullable=False)
+    product_id = db.Column(db.Integer, nullable=False)
+    product_name = db.Column(db.String(80), nullable=False)
+    product_price = db.Column(db.Float, nullable=False)
+    product_image = db.Column(db.String(200))
+    seller_contact = db.Column(db.String(200))
+    status = db.Column(db.String(20), default='pending')  # pending, paid, completed
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+# 在应用上下文中创建数据库表（必须在模型定义之后）
+with app.app_context():
+    db.create_all()
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
@@ -128,8 +147,13 @@ def register():
 
 @app.route('/homepage')
 def homepage():
-    products = Product.query.all()  
-    return render_template('homepage.html', products=products)
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect(url_for('login'))
+    uploaded_products = Product.query.filter_by(user_id=user_id).all()
+    sold_products = Product.query.filter_by(user_id=user_id, is_sold=True).all()
+    orders = Order.query.filter_by(user_id=user_id).all()
+    return render_template('homepage.html', uploaded_products=uploaded_products, sold_products=sold_products, orders=orders)
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
@@ -142,6 +166,7 @@ def upload():
         price = float(price_str)
         description = request.form.get('description')
         degree_of_wear = request.form.get('degree_of_wear')
+        seller_contact = request.form.get('seller_contact', '')
         image = request.files['image']
 
         image_rel = None
@@ -156,14 +181,15 @@ def upload():
             # 在数据库中仅存相对static的路径，使用正斜杠，便于通过url_for('static', filename=...)
             image_rel = f"uploads/{unique_name}"
 
-        new_product = Product(name=name, price=price, description=description, degree_of_wear=degree_of_wear, image=image_rel or '')
+        new_product = Product(name=name, price=price, description=description, degree_of_wear=degree_of_wear, image=image_rel or '', seller_contact=seller_contact, user_id=session.get('user_id'))
         db.session.add(new_product)
         db.session.commit()
         
         # 添加到语义检索索引（简单版本无需额外操作）
         # simple_search 直接搜索数据库，无需维护索引
         
-        return "Upload successfully"
+        flash('Book uploaded successfully!')
+        return redirect(url_for('homepage'))
     return render_template("upload.html")
 
 
@@ -204,10 +230,12 @@ def search():
 
 @app.route('/products/<int:id>')
 def book_detail(id):
-    products = Product.query.get(id)
-    if products is None:
+    from datetime import datetime
+    product = Product.query.get(id)
+    if product is None:
         return "Product not found", 404
-    return render_template('check_data.html', products=[products])
+    current_time = datetime.now().strftime('%Y%m%d%H%M%S')
+    return render_template('book_detail.html', product=product, current_time=current_time)
 
 @app.route('/image/<int:product_id>')
 def get_image(product_id):
@@ -269,8 +297,97 @@ def get_products():
         'description': product.description,
         'price': product.price,
         'degree_of_wear': product.degree_of_wear,
-        'image_url': product.image
+        'image': product.image,
+        'name': product.name,
+        'seller_contact': product.seller_contact
     } for product in products])
+
+@app.route('/products/<int:product_id>', methods=['GET'])
+def get_product(product_id):
+    product = Product.query.get(product_id)
+    if product is None:
+        return jsonify({"message": "Product not found"}), 404
+    return jsonify({
+        'id': product.id,
+        'name': product.name,
+        'price': product.price,
+        'description': product.description,
+        'degree_of_wear': product.degree_of_wear,
+        'image': product.image,
+        'seller_contact': product.seller_contact
+    })
+
+@app.route('/products/<int:product_id>', methods=['PUT'])
+def update_product(product_id):
+    product = Product.query.get(product_id)
+    if product is None:
+        return jsonify({"message": "Product not found"}), 404
+    
+    data = request.get_json()
+    if 'name' in data:
+        product.name = data['name']
+    if 'price' in data:
+        product.price = data['price']
+    if 'description' in data:
+        product.description = data['description']
+    if 'degree_of_wear' in data:
+        product.degree_of_wear = data['degree_of_wear']
+    if 'seller_contact' in data:
+        product.seller_contact = data['seller_contact']
+    
+    db.session.commit()
+    return jsonify({"message": "Product updated successfully"})
+
+@app.route('/order/<int:order_id>', methods=['GET'])
+def get_order(order_id):
+    order = Order.query.get(order_id)
+    if order is None:
+        return jsonify({"message": "Order not found"}), 404
+    return jsonify({
+        'id': order.id,
+        'product_name': order.product_name,
+        'product_price': order.product_price,
+        'product_image': order.product_image,
+        'seller_contact': order.seller_contact,
+        'status': order.status
+    })
+
+@app.route('/create_order', methods=['POST'])
+def create_order():
+    data = request.get_json()
+    user_id = session.get('user_id')
+    
+    if not user_id:
+        return jsonify({"success": False, "message": "User not logged in"}), 401
+    
+    # 获取商品
+    product = Product.query.get(data.get('product_id'))
+    if not product:
+        return jsonify({"success": False, "message": "Product not found"}), 404
+    
+    # 检查商品是否已售出
+    if product.is_sold:
+        return jsonify({"success": False, "message": "Product has been sold"}), 400
+    
+    new_order = Order(
+        user_id=user_id,
+        product_id=data.get('product_id'),
+        product_name=data.get('product_name'),
+        product_price=data.get('product_price'),
+        product_image=data.get('product_image', ''),
+        seller_contact=data.get('seller_contact', ''),
+        status='paid'
+    )
+    
+    db.session.add(new_order)
+    
+    # 更新商品状态为已售出，并记录购买者ID
+    product.is_sold = True
+    product.buyer_id = user_id
+    
+    db.session.commit()
+    
+    return jsonify({"success": True, "order_id": new_order.id})
 
 
 @app.route('/api/rebuild_index', methods=['POST'])
@@ -377,10 +494,10 @@ def book_recommendations(book_id):
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
-    print("🚀 WeBook应用正在启动...")
-    print(f"📁 数据库类型: {'SQLite' if app.config.get('SQLALCHEMY_DATABASE_URI', '').startswith('sqlite') else 'MySQL'}")
-    print(f"🔗 数据库URI: {app.config.get('SQLALCHEMY_DATABASE_URI')}")
-    print(f"📂 上传文件夹: {app.config['UPLOAD_FOLDER']}")
-    print(f"🧠 语义知识库: 已集成SPARQL搜索")
-    print("🌐 访问地址: http://127.0.0.1:5003")
+    print("[INFO] WeBook应用正在启动...")
+    print(f"[INFO] 数据库类型: {'SQLite' if app.config.get('SQLALCHEMY_DATABASE_URI', '').startswith('sqlite') else 'MySQL'}")
+    print(f"[INFO] 数据库URI: {app.config.get('SQLALCHEMY_DATABASE_URI')}")
+    print(f"[INFO] 上传文件夹: {app.config['UPLOAD_FOLDER']}")
+    print(f"[INFO] 语义知识库: 已集成SPARQL搜索")
+    print("[INFO] 访问地址: http://127.0.0.1:5003")
     app.run(debug=True, port=5003)

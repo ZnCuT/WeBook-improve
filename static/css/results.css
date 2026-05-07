@@ -1,84 +1,369 @@
-/* 通用样式 */
+/* 搜索结果页面样式 */
+@import url('./theme.css');
+
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #f8fafc;
     margin: 0;
     padding: 0;
     color: #333;
+    min-height: 100vh;
 }
 
-h1 {
+/* 头部 */
+.header {
+    background: linear-gradient(135deg, #233D94 0%, #3C5B92 100%);
+    padding: 25px 40px;
+    box-shadow: 0 4px 20px rgba(35, 61, 148, 0.3);
+}
+
+.header h1 {
     text-align: center;
-    color: #2980b9;
-    margin-top: 40px;
-    font-size: 32px;
-}
-
-p {
-    text-align: center;
-    font-size: 18px;
-    color: #555;
-}
-
-/* 搜索结果列表 */
-ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 20px auto;
-    max-width: 900px;
-}
-
-ul li {
-    background-color: #fff;
-    border: 1px solid #ddd;
-    padding: 15px;
-    margin-bottom: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-ul li:hover {
-    background-color: #ecf0f1;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-/* 链接样式 */
-a {
-    text-decoration: none;
-    color: #2980b9;
-    font-size: 18px;
-}
-
-a:hover {
-    color: #3498db;
-}
-
-/* "Buy and Remove" 按钮样式 */
-a[style="display:block; margin-top:10px;"] {
-    background-color: #2c4485;
     color: white;
-    text-align: center;
-    padding: 10px;
-    border-radius: 5px;
-    margin-top: 10px;
-    transition: background-color 0.3s ease;
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0;
 }
 
-a[style="display:block; margin-top:10px;"]:hover {
-    background-color: #2ecc71;
+/* 搜索栏 */
+.search-container {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 0 20px;
 }
 
-/* 返回按钮样式 */
-a[href="{{ url_for('search') }}"] {
-    display: block;
-    text-align: center;
-    font-size: 18px;
-    color: #2980b9;
-    margin-top: 30px;
+.search-bar {
+    background: white;
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.search-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* 搜索模式选择 */
+.search-mode-selector {
+    display: flex;
+    gap: 25px;
+    flex-wrap: wrap;
+}
+
+.search-mode-selector label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    color: #475569;
+    padding: 10px 16px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.search-mode-selector label:hover {
+    background-color: #f1f5f9;
+}
+
+.search-mode-selector input[type="radio"] {
+    margin-right: 10px;
+    width: 18px;
+    height: 18px;
+    accent-color: #233D94;
+    cursor: pointer;
+}
+
+.mode-description {
+    font-size: 13px;
+    color: #94a3b8;
+    margin-left: 8px;
+}
+
+/* 搜索输入框 */
+.search-input-group {
+    display: flex;
+    gap: 15px;
+}
+
+.search-input-group input[type="text"] {
+    flex: 1;
+    padding: 15px 20px;
+    font-size: 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    background-color: #f8fafc;
+    color: #1e293b;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.search-input-group input[type="text"]:focus {
+    border-color: #233D94;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(35, 61, 148, 0.1);
+}
+
+.search-input-group button {
+    padding: 15px 30px;
+    background: linear-gradient(135deg, #233D94 0%, #3C5B92 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(35, 61, 148, 0.3);
+}
+
+.search-input-group button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(35, 61, 148, 0.4);
+}
+
+/* 闪烁消息 */
+.flash-messages {
+    margin-top: 15px;
+}
+
+.flash-message {
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    animation: fadeIn 0.3s ease;
+}
+
+.flash-message.error {
+    background-color: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+    border: 1px solid rgba(231, 76, 60, 0.2);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 结果区域 */
+.results {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.results h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* 相似度标签 */
+.similarity-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* 结果列表 */
+.results ul {
+    list-style: none;
+    padding: 0;
+}
+
+.results li {
+    background-color: white;
+    padding: 25px;
+    margin-bottom: 20px;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    display: flex;
+    gap: 25px;
+    transition: all 0.3s ease;
+}
+
+.results li:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* 商品图片 */
+.product-image {
+    width: 120px;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 10px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* 商品信息 */
+.product-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 10px;
+}
+
+.product-description {
+    font-size: 15px;
+    color: #64748b;
+    line-height: 1.6;
+    margin-bottom: 15px;
+    flex: 1;
+}
+
+.product-meta {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+}
+
+.product-price {
+    font-size: 24px;
+    font-weight: 700;
+    color: #e74c3c;
+}
+
+.product-condition {
+    font-size: 14px;
+    color: #27ae60;
+    font-weight: 600;
+}
+
+/* 操作按钮 */
+.action-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border-radius: 10px;
     text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
-a[href="{{ url_for('search') }}"]:hover {
-    color: #3498db;
+.btn-primary {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+}
+
+.btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+}
+
+/* 无结果状态 */
+.no-results {
+    text-align: center;
+    padding: 80px 20px;
+    color: #94a3b8;
+}
+
+.no-results p {
+    font-size: 18px;
+    margin-bottom: 15px;
+}
+
+.no-results .tip {
+    font-size: 14px;
+    color: #64748b;
+    background-color: #f1f5f9;
+    padding: 15px 25px;
+    border-radius: 12px;
+    display: inline-block;
+    margin-top: 10px;
+}
+
+/* 返回链接 */
+.back-to-search {
+    display: inline-block;
+    margin-top: 30px;
+    padding: 12px 25px;
+    background-color: #64748b;
+    color: white;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.back-to-search:hover {
+    background-color: #475569;
+    transform: translateY(-2px);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .header h1 {
+        font-size: 24px;
+    }
+    
+    .search-input-group {
+        flex-direction: column;
+    }
+    
+    .results li {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .product-image {
+        width: 100%;
+        height: 200px;
+    }
+    
+    .product-meta {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+    }
 }

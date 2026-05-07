@@ -1,75 +1,321 @@
-* {
+/* 上传书籍页面样式 */
+@import url('./theme.css');
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #f8fafc;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+/* 头部 */
+header {
+    background: linear-gradient(135deg, #233D94 0%, #3C5B92 100%);
+    color: white;
+    padding: 25px 40px;
+    margin: 0;
+    box-shadow: 0 4px 20px rgba(35, 61, 148, 0.3);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.back-btn {
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.homepage-btn {
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.homepage-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+/* 主容器 */
+.container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+/* 上传表单卡片 */
+.upload-card {
+    background: white;
+    border-radius: 24px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+/* 卡片头部 */
+.card-header {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    padding: 25px 30px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.card-header h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+.card-header p {
+    font-size: 14px;
+    color: #64748b;
+    margin: 5px 0 0 0;
+}
+
+/* 表单内容 */
+.card-body {
+    padding: 35px;
+}
+
+.upload-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+}
+
+/* 表单组 */
+.form-group {
+    margin-bottom: 0;
+}
+
+.form-group.full-width {
+    grid-column: span 2;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #34495e;
+    font-size: 14px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"] {
+    width: 100%;
+    padding: 14px 18px;
+    font-size: 15px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    background-color: #f8fafc;
+    color: #1e293b;
+    transition: all 0.3s ease;
+    outline: none;
     box-sizing: border-box;
 }
 
-body {
-    background-color: white; /* 设置背景颜色 */
-    font-family: Arial, sans-serif; /* 设置字体 */
-    margin: 0; /* 去除默认外边距 */
-    padding: 0; /* 添加内边距 */
+.form-group input[type="text"]:focus,
+.form-group input[type="number"]:focus {
+    border-color: #233D94;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(35, 61, 148, 0.1);
 }
 
-header {
-    background-color: #3C5B92; /* 大标题背景色为蓝色 */
-    color: white; /* 字体颜色为白色 */
-    text-align: center; /* 标题居中对齐 */
-    padding: 20px; /* 标题内边距 */
-    margin: 0; /* 去除标题外边距 */
+.form-group input::placeholder {
+    color: #94a3b8;
 }
 
-h1 {
-    color: white; /* 设置标题颜色 */
-    text-align: center; /* 标题居中 */
+/* 图片上传区域 */
+.image-upload {
+    grid-column: span 2;
+    border: 3px dashed #cbd5e1;
+    border-radius: 16px;
+    padding: 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: #fafafa;
 }
 
-h2 {
-    color: black;
-    text-align: center; /* 修正了这里的语法错误 */
+.image-upload:hover {
+    border-color: #233D94;
+    background-color: rgba(35, 61, 148, 0.05);
 }
 
-p {
-    font-size: 16px; /* 设置段落字体大小 */
-    line-height: 1.5; /* 设置行高 */
+.image-upload.dragover {
+    border-color: #233D94;
+    background-color: rgba(35, 61, 148, 0.1);
 }
 
-.container {
+.image-upload input[type="file"] {
+    display: none;
+}
+
+.upload-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #233D94, #3C5B92);
     display: flex;
-    justify-content: space-between; /* 左右两边对齐 */
-    padding: 20px;
-    height: 300px; /* 添加分号 */
-}
-
-.left-sidebar {
-    flex: 1;
-    order: 1;
-    cursor: pointer;
-    padding: 20px;
-    margin: 20px;
-    border: 10px #3C5B92 dashed; /* 添加分号 */
-    color: #3C5B92;
-}
-p{
-    color:rgb(155, 27, 27)
-}
-.right-sidebar {
-    flex: 1;
-    order: 2; /* 添加分号 */
-    cursor: pointer;
-    padding: 20px;
-    margin: 20px;
-    border: 10px #3C5B92 solid; /* 添加分号 */
-}
-
-button {
-    background-color: #3C5B92;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 15px;
     color: white;
-    display: inline-block;
-    cursor: pointer;
-    padding: 20px;
-    margin: 20px; /* 添加分号 */
-    border: 8px #3C5B92 solid; /* 添加分号 */
+    font-size: 28px;
 }
-button:hover {
-    border-color: rgb(71, 141, 179);
-    background-color: rgb(71, 141, 179);
+
+.upload-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: #34495e;
+    margin-bottom: 8px;
+}
+
+.upload-hint {
+    font-size: 13px;
+    color: #94a3b8;
+}
+
+/* 图片预览 */
+#preview {
+    margin-top: 20px;
+}
+
+#preview img {
+    max-width: 200px;
+    max-height: 280px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* 提交按钮 */
+.submit-btn {
+    grid-column: span 2;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+    background: linear-gradient(135deg, #233D94 0%, #3C5B92 100%);
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(35, 61, 148, 0.4);
+}
+
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(35, 61, 148, 0.5);
+}
+
+.submit-btn:active {
+    transform: translateY(0);
+}
+
+/* 成功提示 */
+.success-message {
+    grid-column: span 2;
+    padding: 20px;
+    background-color: rgba(46, 204, 113, 0.1);
+    border: 1px solid rgba(46, 204, 113, 0.3);
+    border-radius: 12px;
+    text-align: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.success-message p {
+    color: #27ae60;
+    font-weight: 600;
+    margin: 0;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 表单提示 */
+.form-tips {
+    grid-column: span 2;
+    margin-top: 15px;
+    padding: 15px 20px;
+    background-color: #f8fafc;
+    border-radius: 10px;
+}
+
+.form-tips p {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .upload-form {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-group.full-width,
+    .image-upload,
+    .submit-btn,
+    .success-message,
+    .form-tips {
+        grid-column: span 1;
+    }
+    
+    .card-body {
+        padding: 25px;
+    }
+    
+    .image-upload {
+        padding: 30px 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    header h1 {
+        font-size: 22px;
+    }
 }

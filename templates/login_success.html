@@ -25,18 +25,26 @@
         <p>Enter different interfaces by selecting</p>
         <div class="identity-container">
             <a href="{{ url_for('search') }}" class="identity-card buyer">
-                <i class="icon-cart"></i>
+                <div class="icon-container">
+                    <img src="{{ url_for('static', filename='images/buyer.png') }}" alt="Buyer Icon">
+                </div>
                 <h3>I am Buyer</h3>
-                <p>Search for books</p>
-                <p>Related recommendations</p>
-                <p>Add contact information</p>
+                <div class="feature-list">
+                    <p>Search for books</p>
+                    <p>Related recommendations</p>
+                    <p>Add contact information</p>
+                </div>
             </a>
             <a href="{{ url_for('upload') }}" class="identity-card seller">
-                <i class="icon-sold"></i>
+                <div class="icon-container">
+                    <img src="{{ url_for('static', filename='images/seller.png') }}" alt="Seller Icon">
+                </div>
                 <h3>I am Seller</h3>
-                <p>Upload products</p>
-                <p>Provide information</p>
-                <p>Leave contact information</p>
+                <div class="feature-list">
+                    <p>Upload products</p>
+                    <p>Provide information</p>
+                    <p>Leave contact information</p>
+                </div>
             </a>
         </div>
     </main>

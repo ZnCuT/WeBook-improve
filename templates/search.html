@@ -6,87 +6,122 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/buyer.css') }}">
     <style>
         .product-image {
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 10px;
         }
 
         .search-container {
-            max-width: 1200px;
-            margin: 2em auto;
+            max-width: 1000px;
+            margin: 0 auto;
             padding: 0 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .search-bar-container {
+            background-color: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
         }
 
         .search-mode-selector {
             display: flex;
-            gap: 20px;
+            gap: 25px;
             margin-bottom: 20px;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .search-mode-selector label {
             display: flex;
             align-items: center;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 15px;
+            padding: 8px 16px;
+            background-color: #f8fafc;
+            border-radius: 20px;
+            transition: all 0.3s ease;
         }
 
         .search-mode-selector input[type="radio"] {
             margin-right: 8px;
             cursor: pointer;
+            accent-color: #233D94;
+        }
+
+        .search-mode-selector label:hover {
+            background-color: #e2e8f0;
+        }
+
+        .search-mode-selector input[type="radio"]:checked + span {
+            color: #233D94;
+            font-weight: 600;
         }
 
         .mode-description {
-            font-size: 14px;
-            color: #666;
-            margin-left: 5px;
+            font-size: 13px;
+            color: #94a3b8;
+            margin-left: 6px;
         }
 
         .results {
-            margin-top: 2em;
+            margin-top: 0;
         }
         .results h2 {
-            margin-bottom: 1em;
-            color: #333;
+            margin-bottom: 20px;
+            color: #1e293b;
+            font-size: 22px;
+            font-weight: 700;
         }
         .results ul {
             list-style-type: none;
             padding: 0;
+            margin: 0;
         }
         .results li {
             background-color: white;
-            padding: 1.5em;
-            margin-bottom: 1.5em;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+            border-radius: 16px;
             display: flex;
-            gap: 20px;
-            transition: transform 0.2s;
+            gap: 25px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         .results li:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         }
 
         .product-info {
             flex: 1;
+            display: flex;
+            flex-direction: column;
         }
 
         .product-name {
-            font-size: 18px;
-            font-weight: bold;
-            color: #333;
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e293b;
             margin-bottom: 10px;
         }
 
         .product-description {
-            color: #666;
-            margin-bottom: 10px;
+            color: #64748b;
+            margin-bottom: 12px;
+            font-size: 14px;
+            line-height: 1.5;
         }
 
         .product-price {
             color: #e74c3c;
-            font-size: 20px;
-            font-weight: bold;
+            font-size: 24px;
+            font-weight: 700;
         }
 
         .similarity-badge {
@@ -99,120 +134,141 @@
             margin-left: 10px;
         }
 
-        .results a {
-            text-decoration: none;
-            color: #ffffff;
-        }
-        .results a:hover {
-            text-decoration: underline;
-        }
-
         .action-buttons {
-            margin-top: 15px;
+            margin-top: auto;
             display: flex;
-            gap: 10px;
+            gap: 12px;
         }
 
         .btn {
-            padding: 8px 16px;
-            border-radius: 4px;
+            padding: 10px 22px;
+            border-radius: 10px;
             text-decoration: none;
             display: inline-block;
             font-size: 14px;
-            transition: background-color 0.3s;
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
 
         .btn-primary {
-            background-color: #3498db;
+            background: linear-gradient(135deg, #233D94 0%, #3C5B92 100%);
             color: white;
+            box-shadow: 0 4px 12px rgba(35, 61, 148, 0.4);
         }
 
         .btn-primary:hover {
-            background-color: #2980b9;
-        }
-
-        .btn-danger {
-            background-color: #e74c3c;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background-color: #c0392b;
-        }
-
-        .back-to-search {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #95a5a6;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-        }
-
-        .back-to-search:hover {
-            background-color: #7f8c8d;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(35, 61, 148, 0.5);
         }
 
         .no-results {
             text-align: center;
-            padding: 40px;
-            color: #666;
+            padding: 60px 20px;
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+        }
+
+        .no-results p {
+            color: #64748b;
             font-size: 16px;
+            margin: 10px 0;
+        }
+
+        /* Flash messages under search box */
+        .flash-messages {
+            margin-top: 15px;
+        }
+
+        .flash-message {
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .flash-message.success {
+            background-color: rgba(39, 174, 96, 0.1);
+            color: #27ae60;
+            border: 1px solid rgba(39, 174, 96, 0.3);
+        }
+
+        .flash-message.error {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.3);
         }
     </style>
 </head>
 <body>
     <header>
-       <h1>Search</h1>
+        <div class="header-content">
+            <div class="logo-section">
+                <img src="{{ url_for('static', filename='images/white-MElogo.png') }}" alt="Logo" class="logo">
+                <div class="title-group">
+                    <h1>Search</h1>
+                    <h2>Find Your Book</h2>
+                </div>
+            </div>
+            <a href="{{ url_for('homepage') }}" class="homepage-btn">🏠 Homepage</a>
+        </div>
     </header>
     
     <div class="search-container">
-        <div class="search-bar">
+        <!-- Search Bar (Top) -->
+        <div class="search-bar-container">
             <form method="post" action="{{ url_for('search') }}">
-                <!-- 搜索模式选择 -->
-            <div class="search-mode-selector">
-                <label>
-                    <input type="radio" name="search_mode" value="keyword" {% if search_mode != 'semantic' and search_mode != 'sparql' %}checked{% endif %}>
-                    keyword search <span class="mode-description">(accurate match)</span>
-                </label>
-                <label>
-                    <input type="radio" name="search_mode" value="semantic" {% if search_mode == 'semantic' %}checked{% endif %}>
-                    semantic search <span class="mode-description">(understand meaning)</span>
-                </label>
-                <label>
-                    <input type="radio" name="search_mode" value="sparql" {% if search_mode == 'sparql' %}checked{% endif %}>
-                    SPARQL Knowledge graph <span class="mode-description">(semantic reasoning)</span>
-                </label>
-            </div>                <input type="text" name="query" placeholder="Enter the book title or description, and the intelligent semantic search can understand the relevant meaning..." value="{{ query }}" required>
-                <button type="submit">Search</button>
+                <div class="search-mode-selector">
+                    <label>
+                        <input type="radio" name="search_mode" value="keyword" {% if search_mode != 'semantic' and search_mode != 'sparql' %}checked{% endif %}>
+                        <span>Keyword Search</span>
+                        <span class="mode-description">(accurate match)</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="search_mode" value="semantic" {% if search_mode == 'semantic' %}checked{% endif %}>
+                        <span>Semantic Search</span>
+                        <span class="mode-description">(understand meaning)</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="search_mode" value="sparql" {% if search_mode == 'sparql' %}checked{% endif %}>
+                        <span>SPARQL KG</span>
+                        <span class="mode-description">(semantic reasoning)</span>
+                    </label>
+                </div>
+                
+                <div style="display: flex; gap: 15px;">
+                    <input type="text" name="query" placeholder="Enter the book title or description..." value="{{ query }}" required style="flex: 1; padding: 14px 20px; font-size: 16px; border: 2px solid #e2e8f0; border-radius: 12px; outline: none; transition: all 0.3s ease;">
+                    <button type="submit" style="padding: 14px 30px; background: linear-gradient(135deg, #233D94 0%, #3C5B92 100%); color: white; border: none; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: 600; transition: all 0.3s ease;">Search</button>
+                </div>
             </form>
             
             {% with messages = get_flashed_messages() %}
               {% if messages %}
-                <ul style="color: red; margin-top: 10px;">
+                <div class="flash-messages">
                   {% for message in messages %}
-                    <li>{{ message }}</li>
+                    <div class="flash-message success">{{ message }}</div>
                   {% endfor %}
-                </ul>
+                </div>
               {% endif %}
             {% endwith %}
         </div>
 
+        <!-- Search Results (Bottom) -->
         {% if query %}
         <div class="results">
+            <h2>
+                The search results of "{{query}}" ({{results|length}} results)
+                {% if search_mode == 'semantic' %}
+                    <span class="similarity-badge">Semantic Matching</span>
+                {% endif %}
+            </h2>
+            
             {% if results %}
-                <h2>
-                    The search results of "{{query}}" ({{results|length}} results)
-                    {% if search_mode == 'semantic' %}
-                        <span class="similarity-badge">Semantic Matching</span>
-                    {% endif %}
-                </h2>
                 <ul>
                     {% for result in results %}
                         <li>
                             {% if result.image %}
-                                {# 规范化路径，支持 Windows 反斜杠 与 可能的 static/ 前缀 #}
                                 {% set img_path = (result.image | replace('\\', '/')) %}
                                 {% set static_rel = img_path.replace('static/', '') %}
                                 <img src="{{ url_for('static', filename=static_rel) }}" alt="{{ result.name }}" class="product-image" onerror="this.src='/static/images/book1.png'">
@@ -223,14 +279,13 @@
                             <div class="product-info">
                                 <div class="product-name">{{ result.name }}</div>
                                 <div class="product-description">{{ result.description }}</div>
-                                <div>
+                                <div style="display: flex; align-items: center; gap: 20px;">
                                     <span class="product-price">¥{{ "%.2f"|format(result.price) }}</span>
-                                    <span style="margin-left: 20px; color: #888;">degree of wear: {{ result.degree_of_wear }}</span>
+                                    <span style="color: #94a3b8; font-size: 14px;">degree of wear: {{ result.degree_of_wear }}</span>
                                 </div>
                                 
                                 <div class="action-buttons">
                                     <a href="{{ url_for('book_detail', id=result.id) }}" class="btn btn-primary">View Details</a>
-                                    <a href="{{ url_for('book_details', id=result.id) }}" class="btn btn-danger" onclick="return confirm('Are you sure you want to buy and remove this item?')">Buy and Remove</a>
                                 </div>
                             </div>
                         </li>
@@ -238,16 +293,15 @@
                 </ul>
             {% else %}
                 <div class="no-results">
+                    <div style="font-size: 48px; margin-bottom: 15px;">📚</div>
                     <p>No products found related to "{{ query }}"</p>
                     {% if search_mode == 'keyword' %}
-                        <p>Tip: You can try using "Semantic Search" to get more relevant results</p>
+                        <p style="font-size: 14px; color: #94a3b8;">Tip: You can try using "Semantic Search" to get more relevant results</p>
                     {% endif %}
                 </div>
             {% endif %}
         </div>
         {% endif %}
-
-        <a href="{{ url_for('homepage') }}" class="back-to-search">Back to Homepage</a>
     </div>
 </body>
 </html>
