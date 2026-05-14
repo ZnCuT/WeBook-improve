@@ -7,7 +7,7 @@ import os
 # 添加项目根目录到 Python 路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from app import app, db, Product, semantic_service, init_semantic_service
+from app import app, db, Product, semantic_search_service
 
 
 def init_database():
@@ -25,16 +25,13 @@ def init_database():
 def rebuild_semantic_index():
     """重建语义检索索引"""
     with app.app_context():
-        print("正在初始化语义检索服务...")
-        init_semantic_service()
-        
         print("正在获取所有商品...")
         products = Product.query.all()
         print(f"找到 {len(products)} 个商品")
         
         if products:
             print("正在重建语义检索索引...")
-            semantic_service.rebuild_index(products)
+            semantic_search_service.rebuild_index(products)
             print("索引重建完成!")
         else:
             print("没有商品数据,跳过索引创建")

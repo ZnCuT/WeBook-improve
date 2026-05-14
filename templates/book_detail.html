@@ -53,6 +53,31 @@
                     <span class="value highlight">{{ product.seller_contact }}</span>
                 </div>
                 {% endif %}
+                
+                <div class="seller-credit">
+                    {% if seller %}
+                    <div class="credit-header">
+                        <span class="label">Seller Credit:</span>
+                        <div class="credit-info">
+                            <span class="credit-score">{{ "%.1f"|format(seller.credit_score) }}</span>
+                            <span class="credit-level {{ seller.credit_level.lower() }}">{{ seller.credit_level }}</span>
+                        </div>
+                    </div>
+                    <div class="credit-links">
+                        <a href="{{ url_for('credit', user_id=seller.id) }}" class="credit-link">📊 Credit Profile</a>
+                        <a href="{{ url_for('reviews', user_id=seller.id) }}" class="credit-link">📝 Reviews</a>
+                    </div>
+                    {% else %}
+                    <div class="credit-header">
+                        <span class="label">Seller Credit:</span>
+                        <div class="credit-info">
+                            <span class="credit-score unavailable">N/A</span>
+                            <span class="credit-level unavailable">Not available</span>
+                        </div>
+                    </div>
+                    <p style="color: #94a3b8; font-size: 14px; margin-top: 10px;">Seller information not available</p>
+                    {% endif %}
+                </div>
                 {% if product.is_sold %}
                 <div class="info-row sold-info">
                     <span class="label">Sold To:</span>

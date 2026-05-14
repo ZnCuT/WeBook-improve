@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Credit Profile - WeBook</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/credit.css') }}">
+</head>
+<body>
+    <!-- 头部 -->
+    <header>
+        <div class="header-content">
+            <div class="logo-section">
+                <img src="{{ url_for('static', filename='images/white-MElogo.png') }}" alt="Logo" class="logo">
+                <div class="title-group">
+                    <h1>Credit</h1>
+                    <h2>Profile</h2>
+                </div>
+            </div>
+            <button class="back-btn" onclick="goBack()">← Back</button>
+        </div>
+    </header>
+
+    <!-- 主内容 -->
+    <div class="main-container">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="flash-messages">
+              {% for message in messages %}
+                <div class="flash-message success">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <!-- 信用分数卡片 -->
+        <div class="credit-card">
+            <div class="credit-header">
+                <div class="credit-icon">⭐</div>
+                <div class="credit-info">
+                    <h2>Credit Score</h2>
+                    <div class="score-display">
+                        <span class="score">{{ "%.1f"|format(user.credit_score) }}</span>
+                        <span class="level {{ user.credit_level.lower() }}">{{ user.credit_level }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="credit-bar">
+                <div class="credit-fill" style="width: {{ user.credit_score }}%"></div>
+            </div>
+            <div class="credit-stats">
+                <div class="stat-item">
+                    <span class="stat-value">{{ user.total_trades }}</span>
+                    <span class="stat-label">Total Trades</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">{{ "%.1f"|format(user.positive_rates) }}%</span>
+                    <span class="stat-label">Positive Rate</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">{{ review_count }}</span>
+                    <span class="stat-label">Reviews</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 信用等级说明 -->
+        <div class="level-guide">
+            <h3>Credit Level Guide</h3>
+            <div class="level-cards">
+                <div class="level-card a">
+                    <div class="level-badge">A</div>
+                    <div class="level-range">90-100</div>
+                    <div class="level-desc">Excellent - Trusted Seller</div>
+                </div>
+                <div class="level-card b">
+                    <div class="level-badge">B</div>
+                    <div class="level-range">70-89</div>
+                    <div class="level-desc">Good - Reliable</div>
+                </div>
+                <div class="level-card c">
+                    <div class="level-badge">C</div>
+                    <div class="level-range">50-69</div>
+                    <div class="level-desc">Fair - Caution</div>
+                </div>
+                <div class="level-card d">
+                    <div class="level-badge">D</div>
+                    <div class="level-range">0-49</div>
+                    <div class="level-desc">Poor - Avoid</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 最近评价 -->
+        <div class="recent-reviews">
+            <div class="section-header">
+                <h3>Recent Reviews</h3>
+                <a href="{{ url_for('reviews', user_id=user.id) }}" class="view-all">View All →</a>
+            </div>
+            
+            {% if recent_reviews %}
+            <div class="reviews-list">
+                {% for review in recent_reviews %}
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="reviewer-info">
+                            {% if review.is_anonymous %}
+                            <div class="avatar">👤</div>
+                            <span class="reviewer-name">Anonymous</span>
+                            {% else %}
+                            <div class="avatar">👤</div>
+                            <span class="reviewer-name">{{ get_user_email(review.reviewer_id) }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="rating-stars">
+                            {% for i in range(5) %}
+                            <span class="star {% if i < review.rating %}filled{% endif %}">★</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <p class="review-comment">{{ review.comment or 'No comment' }}</p>
+                    <div class="review-date">{{ format_date(review.created_at) }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">📝</div>
+                <p>No reviews yet</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- 信用记录 -->
+        <div class="credit-history">
+            <h3>Credit History</h3>
+            {% if credit_history %}
+            <div class="history-list">
+                {% for record in credit_history %}
+                <div class="history-item">
+                    <div class="history-icon {% if record.type == 'increase' %}positive{% else %}negative{% endif %}">
+                        {{ '↑' if record.type == 'increase' else '↓' }}
+                    </div>
+                    <div class="history-content">
+                        <div class="history-title">{{ record.title }}</div>
+                        <div class="history-date">{{ format_date(record.date) }}</div>
+                    </div>
+                    <div class="history-change {% if record.type == 'increase' %}positive{% else %}negative{% endif %}">
+                        {{ '+' if record.type == 'increase' else '' }}{{ record.change }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">📊</div>
+                <p>No credit history yet</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+    </script>
+</body>
+</html>

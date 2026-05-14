@@ -10,6 +10,18 @@
             height: 160px;
             object-fit: cover;
             border-radius: 10px;
+            background-color: #f1f5f9;
+            background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160"%3E%3Crect fill="%23e2e8f0" width="120" height="160" rx="8"/%3E%3Ctext fill="%2394a3b8" font-family="Arial" font-size="14" x="50%25" y="50%25" text-anchor="middle" dominant-baseline="middle"%3E📚%3C/text%3E%3C/svg%3E');
+            background-size: 60px;
+            background-repeat: no-repeat;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .product-image.loaded {
+            opacity: 1;
+            background-image: none;
         }
 
         .search-container {
@@ -271,9 +283,9 @@
                             {% if result.image %}
                                 {% set img_path = (result.image | replace('\\', '/')) %}
                                 {% set static_rel = img_path.replace('static/', '') %}
-                                <img src="{{ url_for('static', filename=static_rel) }}" alt="{{ result.name }}" class="product-image" onerror="this.src='/static/images/book1.png'">
+                                <img src="{{ url_for('static', filename=static_rel) }}" alt="{{ result.name }}" class="product-image" onload="this.classList.add('loaded')" onerror="this.src='/static/images/book1.png'; this.classList.add('loaded');">
                             {% else %}
-                                <img src="{{ url_for('static', filename='images/book1.png') }}" alt="默认图片" class="product-image">
+                                <img src="{{ url_for('static', filename='images/book1.png') }}" alt="默认图片" class="product-image" onload="this.classList.add('loaded')">
                             {% endif %}
                             
                             <div class="product-info">

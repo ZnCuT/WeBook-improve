@@ -79,12 +79,27 @@ class User(db.Model):
     email = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(100), nullable=False)  # 去掉unique约束
     phone = db.Column(db.String(20))  # 用户联系电话
+    credit_score = db.Column(db.Float, default=100.0)  # 用户信用分数，初始100分
+    credit_level = db.Column(db.String(20), default='A')  # 信用等级：A/B/C/D
+    total_trades = db.Column(db.Integer, default=0)  # 交易次数
+    positive_rates = db.Column(db.Float, default=100.0)  # 好评率
 
     def set_password(self, password):
         self.password = bcrypt.generate_password_hash(password).decode('utf-8')
 
     def check_password(self, password):
         return bcrypt.check_password_hash(self.password, password)
+
+    def update_credit_level(self):
+        """根据信用分数更新信用等级"""
+        if self.credit_score >= 90:
+            self.credit_level = 'A'
+        elif self.credit_score >= 70:
+            self.credit_level = 'B'
+        elif self.credit_score >= 50:
+            self.credit_level = 'C'
+        else:
+            self.credit_level = 'D'
 
     def __repr__(self):
         return f'<User {self.email}>'
@@ -100,6 +115,18 @@ class Order(db.Model):
     seller_contact = db.Column(db.String(200))
     status = db.Column(db.String(20), default='pending')  # pending, paid, completed
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    reviewed = db.Column(db.Boolean, default=False)  # 是否已评价
+
+class Review(db.Model):
+    __tablename__ = 'reviews'
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, nullable=False)
+    reviewer_id = db.Column(db.Integer, nullable=False)  # 评价者ID（买家）
+    reviewee_id = db.Column(db.Integer, nullable=False)  # 被评价者ID（卖家）
+    rating = db.Column(db.Integer, nullable=False)  # 评分1-5星
+    comment = db.Column(db.String(500))  # 评价内容
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    is_anonymous = db.Column(db.Boolean, default=False)  # 是否匿名评价
 
 # 在应用上下文中创建数据库表（必须在模型定义之后）
 with app.app_context():
@@ -234,8 +261,14 @@ def book_detail(id):
     product = Product.query.get(id)
     if product is None:
         return "Product not found", 404
+    
+    # 获取卖家信息
+    seller = None
+    if product.user_id:
+        seller = User.query.get(product.user_id)
+    
     current_time = datetime.now().strftime('%Y%m%d%H%M%S')
-    return render_template('book_detail.html', product=product, current_time=current_time)
+    return render_template('book_detail.html', product=product, seller=seller, current_time=current_time)
 
 @app.route('/image/<int:product_id>')
 def get_image(product_id):
@@ -490,6 +523,194 @@ def book_recommendations(book_id):
     except Exception as e:
         print(f"获取推荐失败: {e}")
         return jsonify([])
+
+# 辅助函数
+def get_user_email(user_id):
+    """获取用户邮箱"""
+    user = User.query.get(user_id)
+    return user.email if user else 'Unknown'
+
+def get_user_credit_level(user_id):
+    """获取用户信用等级"""
+    user = User.query.get(user_id)
+    return user.credit_level if user else 'Unknown'
+
+def format_date(dt):
+    """格式化日期"""
+    if dt:
+        if isinstance(dt, str):
+            # 如果是字符串，直接返回
+            return dt
+        return dt.strftime('%Y-%m-%d %H:%M')
+    return ''
+
+# 信用主页路由
+@app.route('/credit/<int:user_id>')
+def credit(user_id):
+    """用户信用主页"""
+    user = User.query.get(user_id)
+    if not user:
+        flash('User not found')
+        return redirect(url_for('homepage'))
+    
+    # 获取评价
+    reviews = Review.query.filter_by(reviewee_id=user_id).order_by(Review.created_at.desc()).all()
+    review_count = len(reviews)
+    
+    # 获取最近5条评价
+    recent_reviews = reviews[:5]
+    
+    # 计算好评率
+    if review_count > 0:
+        avg_rating = sum(r.rating for r in reviews) / review_count
+        positive_count = sum(1 for r in reviews if r.rating >= 4)
+        positive_rate = (positive_count / review_count) * 100
+    else:
+        avg_rating = 0
+        positive_rate = 100
+    
+    # 模拟信用历史（实际项目中可以存储真实历史）
+    credit_history = [
+        {'type': 'increase', 'title': 'Completed successful trade', 'change': '+5', 'date': '2024-01-15'},
+        {'type': 'increase', 'title': 'Received positive review', 'change': '+3', 'date': '2024-01-14'},
+        {'type': 'increase', 'title': 'Completed successful trade', 'change': '+5', 'date': '2024-01-10'},
+    ]
+    
+    return render_template('credit.html', 
+                           user=user,
+                           review_count=review_count,
+                           recent_reviews=recent_reviews,
+                           credit_history=credit_history,
+                           get_user_email=get_user_email,
+                           format_date=format_date)
+
+# 评价页面路由
+@app.route('/reviews/<int:user_id>')
+def reviews(user_id):
+    """用户评价页面"""
+    user = User.query.get(user_id)
+    if not user:
+        flash('User not found')
+        return redirect(url_for('homepage'))
+    
+    current_user_id = session.get('user_id')
+    is_current_user = current_user_id == user_id
+    
+    # 获取所有评价
+    reviews = Review.query.filter_by(reviewee_id=user_id).order_by(Review.created_at.desc()).all()
+    
+    # 计算平均评分
+    if reviews:
+        average_rating = sum(r.rating for r in reviews) / len(reviews)
+    else:
+        average_rating = 0
+    
+    # 获取待评价订单（只有当前用户查看自己页面时显示）
+    pending_orders = []
+    if is_current_user:
+        # 获取已完成但未评价的订单（这里简化为已支付的订单）
+        pending_orders = Order.query.filter_by(user_id=current_user_id, reviewed=False).all()
+    
+    # 获取各星级数量
+    rating_counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
+    for review in reviews:
+        if review.rating in rating_counts:
+            rating_counts[review.rating] += 1
+    
+    def get_rating_count(rating):
+        return rating_counts.get(rating, 0)
+    
+    def get_rating_percentage(rating):
+        if len(reviews) == 0:
+            return 0
+        return (rating_counts.get(rating, 0) / len(reviews)) * 100
+    
+    return render_template('reviews.html',
+                           user=user,
+                           reviews=reviews,
+                           average_rating=average_rating,
+                           is_current_user=is_current_user,
+                           pending_orders=pending_orders,
+                           get_user_email=get_user_email,
+                           get_user_credit_level=get_user_credit_level,
+                           format_date=format_date,
+                           get_rating_count=get_rating_count,
+                           get_rating_percentage=get_rating_percentage)
+
+# 提交评价路由
+@app.route('/submit_review', methods=['POST'])
+def submit_review():
+    """提交评价"""
+    data = request.get_json()
+    user_id = session.get('user_id')
+    
+    if not user_id:
+        return jsonify({"success": False, "message": "User not logged in"}), 401
+    
+    order_id = data.get('order_id')
+    rating = data.get('rating')
+    comment = data.get('comment', '')
+    is_anonymous = data.get('is_anonymous', False)
+    
+    if not order_id or not rating:
+        return jsonify({"success": False, "message": "Missing required fields"}), 400
+    
+    # 获取订单信息
+    order = Order.query.get(order_id)
+    if not order:
+        return jsonify({"success": False, "message": "Order not found"}), 404
+    
+    # 获取商品信息，找到卖家
+    product = Product.query.get(order.product_id)
+    if not product:
+        return jsonify({"success": False, "message": "Product not found"}), 404
+    
+    # 检查是否已经评价过
+    existing_review = Review.query.filter_by(order_id=order_id).first()
+    if existing_review:
+        return jsonify({"success": False, "message": "Already reviewed"}), 400
+    
+    # 创建评价
+    new_review = Review(
+        order_id=order_id,
+        reviewer_id=user_id,
+        reviewee_id=product.user_id,  # 卖家ID
+        rating=rating,
+        comment=comment,
+        is_anonymous=is_anonymous
+    )
+    
+    db.session.add(new_review)
+    
+    # 更新订单状态为已评价
+    order.reviewed = True
+    
+    # 更新卖家信用
+    seller = User.query.get(product.user_id)
+    if seller:
+        # 更新交易次数
+        seller.total_trades += 1
+        
+        # 根据评价调整信用分数
+        if rating >= 4:
+            seller.credit_score = min(100, seller.credit_score + 3)
+        elif rating == 3:
+            seller.credit_score = max(0, seller.credit_score - 1)
+        else:
+            seller.credit_score = max(0, seller.credit_score - 5)
+        
+        # 更新信用等级
+        seller.update_credit_level()
+        
+        # 更新好评率
+        seller_reviews = Review.query.filter_by(reviewee_id=seller.id).all()
+        if seller_reviews:
+            positive_count = sum(1 for r in seller_reviews if r.rating >= 4)
+            seller.positive_rates = (positive_count / len(seller_reviews)) * 100
+    
+    db.session.commit()
+    
+    return jsonify({"success": True, "message": "Review submitted successfully"})
 
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):

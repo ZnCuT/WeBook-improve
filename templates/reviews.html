@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Reviews - WeBook</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/reviews.css') }}">
+</head>
+<body>
+    <!-- 头部 -->
+    <header>
+        <div class="header-content">
+            <div class="logo-section">
+                <img src="{{ url_for('static', filename='images/white-MElogo.png') }}" alt="Logo" class="logo">
+                <div class="title-group">
+                    <h1>Reviews</h1>
+                    <h2>Feedback</h2>
+                </div>
+            </div>
+            <button class="back-btn" onclick="goBack()">← Back</button>
+        </div>
+    </header>
+
+    <!-- 主内容 -->
+    <div class="main-container">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="flash-messages">
+              {% for message in messages %}
+                <div class="flash-message success">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <!-- 评价统计 -->
+        <div class="stats-card">
+            <div class="overall-rating">
+                <div class="rating-number">{{ average_rating }}</div>
+                <div class="rating-stars">
+                    {% for i in range(5) %}
+                    <span class="star {% if i < average_rating|int %}filled{% endif %}">★</span>
+                    {% endfor %}
+                </div>
+                <span class="rating-count">{{ reviews|length }} reviews</span>
+            </div>
+            <div class="rating-distribution">
+                {% for i in range(5, 0, -1) %}
+                <div class="rating-bar-item">
+                    <span class="star-label">{{ i }}★</span>
+                    <div class="bar-container">
+                        <div class="bar-fill" style="width: {{ get_rating_percentage(i) }}%"></div>
+                    </div>
+                    <span class="bar-count">{{ get_rating_count(i) }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- 写评价按钮（仅当前用户查看自己页面时显示） -->
+        {% if is_current_user and pending_orders %}
+        <div class="write-review-section">
+            <button class="write-review-btn" onclick="openWriteReviewModal()">✍️ Write a Review</button>
+        </div>
+        {% endif %}
+
+        <!-- 评价列表 -->
+        <div class="reviews-section">
+            <h3>All Reviews</h3>
+            
+            {% if reviews %}
+            <div class="reviews-container">
+                {% for review in reviews %}
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="reviewer-info">
+                            {% if review.is_anonymous %}
+                            <div class="avatar">👤</div>
+                            <div class="reviewer-details">
+                                <span class="reviewer-name">Anonymous</span>
+                            </div>
+                            {% else %}
+                            <div class="avatar">👤</div>
+                            <div class="reviewer-details">
+                                <span class="reviewer-name">{{ get_user_email(review.reviewer_id) }}</span>
+                                <span class="reviewer-credit">Credit: {{ get_user_credit_level(review.reviewer_id) }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="review-rating">
+                            {% for i in range(5) %}
+                            <span class="star {% if i < review.rating %}filled{% endif %}">★</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    {% if review.comment %}
+                    <p class="review-content">{{ review.comment }}</p>
+                    {% else %}
+                    <p class="review-content no-comment">No comment provided</p>
+                    {% endif %}
+                    
+                    <div class="review-footer">
+                        <span class="review-date">{{ format_date(review.created_at) }}</span>
+                        {% if review.is_anonymous %}
+                        <span class="anonymous-badge">Anonymous</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">📝</div>
+                <p>No reviews yet</p>
+                {% if is_current_user %}
+                <p class="empty-hint">Complete orders to receive reviews from buyers!</p>
+                {% else %}
+                <p class="empty-hint">Be the first to leave a review!</p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 写评价弹窗 -->
+    <div id="write-review-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeWriteReviewModal()">&times;</span>
+            <h3>Write a Review</h3>
+            
+            <form id="review-form">
+                <input type="hidden" id="review-order-id">
+                
+                <!-- 选择订单 -->
+                <div class="form-group">
+                    <label>Select Order</label>
+                    <select id="order-select" required>
+                        <option value="">Choose an order</option>
+                        {% for order in pending_orders %}
+                        <option value="{{ order.id }}">{{ order.product_name }} - ¥{{ "%.2f"|format(order.product_price) }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- 评分 -->
+                <div class="form-group">
+                    <label>Rating</label>
+                    <div class="star-rating" id="star-rating">
+                        {% for i in range(1, 6) %}
+                        <span class="star" data-value="{{ i }}" onclick="setRating({{ i }})">★</span>
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" id="review-rating" required>
+                </div>
+                
+                <!-- 评价内容 -->
+                <div class="form-group">
+                    <label>Comment (optional)</label>
+                    <textarea id="review-comment" placeholder="Write your review..." maxlength="500"></textarea>
+                </div>
+                
+                <!-- 匿名评价 -->
+                <div class="form-group checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="review-anonymous">
+                        <span>Post anonymously</span>
+                    </label>
+                </div>
+                
+                <button type="submit" class="submit-btn">Submit Review</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+
+        function openWriteReviewModal() {
+            document.getElementById('write-review-modal').style.display = 'block';
+        }
+
+        function closeWriteReviewModal() {
+            document.getElementById('write-review-modal').style.display = 'none';
+            document.getElementById('review-form').reset();
+            resetRating();
+        }
+
+        function setRating(value) {
+            const stars = document.querySelectorAll('#star-rating .star');
+            stars.forEach((star, index) => {
+                if (index < value) {
+                    star.classList.add('selected');
+                } else {
+                    star.classList.remove('selected');
+                }
+            });
+            document.getElementById('review-rating').value = value;
+        }
+
+        function resetRating() {
+            const stars = document.querySelectorAll('#star-rating .star');
+            stars.forEach(star => star.classList.remove('selected'));
+            document.getElementById('review-rating').value = '';
+        }
+
+        document.getElementById('review-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const orderId = document.getElementById('order-select').value;
+            const rating = document.getElementById('review-rating').value;
+            const comment = document.getElementById('review-comment').value;
+            const isAnonymous = document.getElementById('review-anonymous').checked;
+            
+            if (!rating) {
+                alert('Please select a rating');
+                return;
+            }
+            
+            fetch('/submit_review', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    order_id: orderId,
+                    rating: parseInt(rating),
+                    comment: comment,
+                    is_anonymous: isAnonymous
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Review submitted successfully!');
+                    closeWriteReviewModal();
+                    location.reload();
+                } else {
+                    alert('Failed to submit review: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to submit review');
+            });
+        });
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('write-review-modal');
+            if (event.target == modal) {
+                closeWriteReviewModal();
+            }
+        }
+    </script>
+</body>
+</html>
